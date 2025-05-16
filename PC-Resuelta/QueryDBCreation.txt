@@ -1,0 +1,61 @@
+CREATE DATABASE IF NOT EXISTS banco;
+USE banco;
+
+CREATE TABLE cuentas (
+    id INT PRIMARY KEY, -- Asignado manualmente desde el código Java
+    tipo VARCHAR(20) NOT NULL,
+    saldo DECIMAL(18,2) NOT NULL DEFAULT 0,
+    dniTitular VARCHAR(20) NOT NULL,
+    nombreTitular VARCHAR(100) NOT NULL,
+    limite DECIMAL(18,2) NOT NULL DEFAULT 0
+);
+
+CREATE INDEX idx_dni ON cuentas(dniTitular);
+
+CREATE TABLE movimientos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    descripcion VARCHAR(255) NOT NULL,
+    monto DECIMAL(18,2) NOT NULL,
+    cuentaId INT NOT NULL,
+    FOREIGN KEY (cuentaId) REFERENCES cuentas(id)
+);
+
+CREATE INDEX idx_mov_cuenta_fecha ON movimientos(cuentaId, fecha DESC);
+
+DELIMITER $$
+
+CREATE PROCEDURE spCrearCuenta(
+    IN p_tipo VARCHAR(20),
+    IN p_saldo DECIMAL(18,2),
+    IN p_dniTitular VARCHAR(20),
+    IN p_nombreTitular VARCHAR(100),
+    IN p_limite DECIMAL(18,2),
+    OUT p_nuevoId INT
+)
+BEGIN
+    DECLARE nuevo_id INT;
+
+    SELECT IFNULL(MAX(id), 0) + 1 INTO nuevo_id FROM cuentas;
+
+    INSERT INTO cuentas(id, tipo, saldo, dniTitular, nombreTitular, limite)
+    VALUES(nuevo_id, p_tipo, p_saldo, p_dniTitular, p_nombreTitular, p_limite);
+
+    SET p_nuevoId = nuevo_id;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE spCrearMovimiento(
+    IN p_descripcion VARCHAR(255),
+    IN p_monto DECIMAL(18,2),
+    IN p_cuentaId INT
+)
+BEGIN
+    INSERT INTO movimientos(descripcion, monto, cuentaId)
+    VALUES(p_descripcion, p_monto, p_cuentaId);
+END $$
+
+DELIMITER ;
