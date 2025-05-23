@@ -29,10 +29,8 @@ public class CrearCuentaControlador {
                 .setDniTitular(dniTitular)
                 .setNombreTitular(nombreTitular);
 
-        // 2) (Opcional) Ajustar límite si es corriente:
         if (builder instanceof BuilderPattern.CuentaCorrienteBuilder ccBuilder) {
-            // p.ej. configurar un límite distinto:
-            // ccBuilder.setLimite(1500);
+            ccBuilder.setLimite(1500);
         }
 
         // 3) Construir y persistir
